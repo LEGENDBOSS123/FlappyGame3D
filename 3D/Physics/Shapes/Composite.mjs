@@ -176,7 +176,6 @@ var Composite = class {
     calculateGlobalHitbox() {
         this.global.hitbox.min = this.local.hitbox.min.add(this.global.body.position);
         this.global.hitbox.max = this.local.hitbox.max.add(this.global.body.position);
-        this.global.hitbox = this.global.hitbox.extend(new Vector3(1,1,1).scale(8));
         return this.global.hitbox;
     }
 

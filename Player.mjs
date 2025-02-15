@@ -2,7 +2,6 @@ import Composite from "./3D/Physics/Shapes/Composite.mjs";
 import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
 import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
-import HealthEntity from "./HealthEntity.mjs";
 import Quaternion from "./3D/Physics/Math3D/Quaternion.mjs";
 var Player = class extends Entity {
     constructor(options) {

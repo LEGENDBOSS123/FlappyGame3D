@@ -54,6 +54,7 @@ class Timer {
             this.offscreen = true;
         } else {
             this.offscreen = false;
+            this.lastTime = performance.now();
         }
     }
     

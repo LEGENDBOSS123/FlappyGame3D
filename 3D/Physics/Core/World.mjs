@@ -66,7 +66,7 @@ var World = class {
                     this.all[i].updateBeforeCollisionAll();
                 }
             }
-            this.collisionDetector.handleAll(Object.values(this.all));
+            this.collisionDetector.handleAll(this.all);
             this.collisionDetector.resolveAll();
             for (var i in this.all) {
                 if (this.all[i].isMaxParent()) {

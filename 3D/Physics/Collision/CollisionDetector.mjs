@@ -11,7 +11,7 @@ var CollisionDetector = class {
         this.world = options?.world ?? null;
         this.contacts = options?.contacts ?? [];
         this.handlers = {};
-        this.binarySearchDepth = options?.binarySearchDepth ?? 8;
+        this.binarySearchDepth = options?.binarySearchDepth ?? 6;
         this.initHandlers();
     }
 
@@ -79,14 +79,14 @@ var CollisionDetector = class {
     }
 
     handleAll(shapes) {
-        for (var i = 0; i < shapes.length; i++) {
+        for (var i in shapes) {
             this.handle(shapes[i]);
         }
     }
 
 
     resolveAll() {
-        for (var [key, value] of this.pairs) {
+        for (var value of this.pairs.values()) {
             this.detectCollision(value[0], value[1]);
         }
         this.resolveAllContacts();
@@ -102,6 +102,7 @@ var CollisionDetector = class {
 
         for (var i = 0; i < this.contacts.length; i++) {
             var contact = this.contacts[i];
+            contact.penetration.scaleInPlace(1.2);
             if (!maxParentMap[contact.body1.maxParent.id]) {
                 maxParentMap[contact.body1.maxParent.id] = { penetrationSum: 0, contacts: [] };
             }

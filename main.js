@@ -115,13 +115,13 @@ var gravity = -0.2;
 
 var player = new Player({
     radius: 1,
-    moveStrength: new Vector3(0.2, 0, 0.2),
+    moveStrength: new Vector3(0.2, 0, 0.2).scale(3),
     jumpStrength: 1,
     global: {
         body: {
             acceleration: new Vector3(0, gravity, 0),
             position: new Vector3(0, 80, 0),
-            linearDamping: new Vector3(0.05, 0, 0.05),
+            linearDamping: new Vector3(0.15, 0, 0.15),
             angularDamping: 1
         }
     },
@@ -229,7 +229,7 @@ top.particleSystem = particleSystem;
 function render() {
     stats.begin();
     if (keyListener.isHeld("ArrowUp") || keyListener.isHeld("KeyW")) {
-        
+
         cameraControls.forward();
     }
     if (keyListener.isHeld("ArrowDown") || keyListener.isHeld("KeyS")) {
@@ -263,40 +263,41 @@ function render() {
             //player.respawn();
         }
         previousWorld = World.fromJSON(structuredClone(world.toJSON()), graphicsEngine);
-        
+
         stats2.begin();
         world.step();
 
         stats2.end();
         steps++;
 
-        if(player.canJump){
+        if (player.canJump) {
             player.composite.global.body.linearDamping.y = 0;
         }
-        else{
+        else {
             //player.composite.global.body.linearDamping = new Vector3(0.05, player.composite.global.body.linearDamping.y, 0.05);
         }
-        
+
         if (cameraControls.movement.up && player.canJump) {
             var vel = player.composite.global.body.getVelocity();
             player.composite.global.body.setVelocity(new Vector3(vel.x, vel.y + player.jumpStrength * world.deltaTime, vel.z));
         }
-        else if(cameraControls.movement.up && cameraControls.justToggled.up) {
-            if(player.composite.global.body.linearDamping.y == 0){
-                player.composite.global.body.linearDamping.y = 0.1;
+        else if (cameraControls.movement.up && cameraControls.justToggled.up) {
+            if (player.composite.global.body.linearDamping.y == 0) {
+                player.composite.global.body.linearDamping.y = 0.05;
+                player.composite.global.body.setVelocity(player.composite.global.body.getVelocity().multiply(new Vector3(1, 0, 1)))
             }
-            else{
+            else {
                 player.composite.global.body.linearDamping.y = 0;
             }
         }
         var delta2 = cameraControls.getDelta(graphicsEngine.camera);
-        if(player.composite.global.body.linearDamping.y == 0){
-            if(delta2.multiply(new Vector3(1,0,1)).magnitudeSquared() != 0){
-                player.composite.global.body.rotation = Quaternion.lookAt(delta2.normalize().multiplyInPlace(new Vector3(1,0,1)), new Vector3(0, 1, 0));
+        if (player.composite.global.body.linearDamping.y == 0) {
+            if (delta2.multiply(new Vector3(1, 0, 1)).magnitudeSquared() != 0) {
+                player.composite.global.body.rotation = Quaternion.lookAt(delta2.normalize().multiplyInPlace(new Vector3(1, 0, 1)), new Vector3(0, 1, 0));
             }
             delta2.scaleInPlace(0);
         }
-        else if(delta2.magnitudeSquared() == 0){
+        else if (delta2.magnitudeSquared() == 0) {
             delta2 = player.composite.global.body.rotation.multiplyVector3(new Vector3(0, 0, 1));
         }
         cameraControls.reset();
