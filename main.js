@@ -112,7 +112,6 @@ world.graphicsEngine = graphicsEngine;
 
 var gravity = -0.2;
 
-
 var player = new Player({
     radius: 1,
     moveStrength: new Vector3(0.2, 0, 0.2).scale(3),
@@ -120,7 +119,7 @@ var player = new Player({
     global: {
         body: {
             acceleration: new Vector3(0, gravity, 0),
-            position: new Vector3(0, 80, 0),
+            position: new Vector3(Math.random(), 120, 0),
             linearDamping: new Vector3(0.15, 0, 0.15),
             angularDamping: 1
         }
@@ -136,7 +135,6 @@ top.player = player;
 player.setMeshAndAddToScene({}, graphicsEngine);
 entitySystem.register(player);
 player.addToWorld(world);
-
 
 
 
@@ -183,30 +181,30 @@ for (var i = 0; i < 1; i++) {
                 box.mesh = graphicsEngine.meshLinker.createMeshData(child.clone());
 
 
-                if (child.name.toLowerCase().includes("checkpoint") || child.name.toLowerCase().includes("spawn")) {
-                    if (child.name.toLowerCase().includes("spawn")) {
-                        player.spawnPoint = box.global.body.position;
-                        if (localStorage["spawnPoint"]) {
-                            player.spawnPoint = Vector3.fromJSON(JSON.parse(localStorage["spawnPoint"]));
-                        }
-                    }
-                    box.addEventListener("postCollision", function (contact) {
-                        if (contact.body1.maxParent == player) {
-                            player.spawnPoint = contact.body2.global.body.position;
-                            localStorage["spawnPoint"] = JSON.stringify(player.spawnPoint.toJSON());
-                        }
-                        else if (contact.body2.maxParent == player) {
-                            player.spawnPoint = contact.body1.global.body.position;
-                            localStorage["spawnPoint"] = JSON.stringify(player.spawnPoint.toJSON());
-                        }
-                    });
-                }
+                // if (child.name.toLowerCase().includes("checkpoint") || child.name.toLowerCase().includes("spawn")) {
+                //     if (child.name.toLowerCase().includes("spawn")) {
+                //         player.spawnPoint = box.global.body.position;
+                //         if (localStorage["spawnPoint"]) {
+                //             player.spawnPoint = Vector3.fromJSON(JSON.parse(localStorage["spawnPoint"]));
+                //         }
+                //     }
+                //     box.addEventListener("postCollision", function (contact) {
+                //         if (contact.body1.maxParent == player) {
+                //             player.spawnPoint = contact.body2.global.body.position;
+                //             localStorage["spawnPoint"] = JSON.stringify(player.spawnPoint.toJSON());
+                //         }
+                //         else if (contact.body2.maxParent == player) {
+                //             player.spawnPoint = contact.body1.global.body.position;
+                //             localStorage["spawnPoint"] = JSON.stringify(player.spawnPoint.toJSON());
+                //         }
+                //     });
+                // }
                 graphicsEngine.addToScene(box.mesh.mesh);
             }
             else {
             }
         })
-        player.respawn();
+        //player.respawn();
 
     });
 
@@ -215,7 +213,6 @@ for (var i = 0; i < 1; i++) {
 
 
 var fps = 20;
-var steps = 0;
 var previousWorld = 0;
 
 var timer = new Timer();
@@ -268,7 +265,6 @@ function render() {
         world.step();
 
         stats2.end();
-        steps++;
 
         if (player.canJump) {
             player.composite.global.body.linearDamping.y = 0;

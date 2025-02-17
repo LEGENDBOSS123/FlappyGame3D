@@ -350,6 +350,8 @@ var Composite = class {
 
             this.global.body.rotation.set(this.parent.global.body.rotation.multiply(this.local.body.rotation));
             this.global.body.position.set(this.parent.global.body.position.add(this.parent.global.body.rotation.multiplyVector3(this.local.body.position)));
+            this.global.body.setVelocity(this.parent.global.body.getVelocity().addInPlace(this.parent.global.body.getAngularVelocity().cross(this.global.body.position.subtract(this.parent.global.body.position))));
+
             this.global.body.acceleration.set(this.parent.global.body.acceleration.add(this.parent.global.body.rotation.multiplyVector3(this.local.body.acceleration)));
 
             this.global.body.angularVelocity.set(this.parent.global.body.angularVelocity.add(this.local.body.angularVelocity));

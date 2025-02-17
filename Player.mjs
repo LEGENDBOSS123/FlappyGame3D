@@ -98,23 +98,23 @@ var Player = class extends Entity {
 
     setMeshAndAddToScene(options, graphicsEngine) {
 
-        graphicsEngine.load("player2.glb", function (gltf) {
-            gltf.scene.scale.set(...(new Vector3(0.02, 0.02, 0.02).scale(this.spheres[0].radius)));
-            top.gltf = gltf;
-            for (var e of gltf.scene.children) {
-                e.position.y -= 100;
-            }
-            gltf.scene.traverse(function (child) {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            })
-            var meshData = graphicsEngine.meshLinker.createMeshData(gltf.scene, graphicsEngine.createAnimations(gltf.scene, gltf.animations));
-            this.composite.mesh = meshData;
-            meshData.animations.actions[0].play();
-            this.addToScene(graphicsEngine.scene);
-        }.bind(this));
+        // graphicsEngine.load("player2.glb", function (gltf) {
+        //     gltf.scene.scale.set(...(new Vector3(0.02, 0.02, 0.02).scale(this.spheres[0].radius)));
+        //     top.gltf = gltf;
+        //     for (var e of gltf.scene.children) {
+        //         e.position.y -= 100;
+        //     }
+        //     gltf.scene.traverse(function (child) {
+        //         if (child.isMesh) {
+        //             child.castShadow = true;
+        //             child.receiveShadow = true;
+        //         }
+        //     })
+        //     var meshData = graphicsEngine.meshLinker.createMeshData(gltf.scene, graphicsEngine.createAnimations(gltf.scene, gltf.animations));
+        //     this.composite.mesh = meshData;
+        //     meshData.animations.actions[0].play();
+        //     this.addToScene(graphicsEngine.scene);
+        // }.bind(this));
         this.spheres.forEach(sphere => {
             sphere.setMeshAndAddToScene({}, graphicsEngine);
         });
@@ -173,7 +173,7 @@ var Player = class extends Entity {
     }
 
     getMainShape() {
-        return this.composite;
+        return this.spheres[0];
     }
 }
 

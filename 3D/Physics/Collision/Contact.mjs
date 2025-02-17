@@ -4,7 +4,7 @@ import Vector3 from "../Math3D/Vector3.mjs";
 var Contact = class {
     constructor(options) {
 
-        this.solved = options?.shared?.solved ?? false;
+        // this.solved = options?.shared?.solved ?? false;
         this.impulse = options?.impulse;
 
         this.normal = options?.normal;
@@ -20,78 +20,73 @@ var Contact = class {
         this.body2Map = options?.body2Map;
 
         this.combinedMaterial = options?.combinedMaterial;
+
+        this.denominator = 0;
+        this.denominatorFric = 0;
+        this.solved = false;
     }
 
     solve() {
-        if (this.solved) {
-            return;
-        }
+        this.velocity = this.body1.getVelocityAtPosition(this.point).subtractInPlace(this.body2.getVelocityAtPosition(this.point));
         var impactSpeed = this.velocity.dot(this.normal);
-        var force = new Vector3();
-        var restitution = this.material.restitution;
-        var radius1 = this.point.subtract(this.body1.maxParent.global.body.position);
-        var radius2 = this.point.subtract(this.body2.maxParent.global.body.position);
-        var cross = radius1.cross(this.normal);
-
-
+        if(impactSpeed > 0){
+            return false;
+        }
         var tangential = this.velocity.projectOntoPlane(this.normal);
-        var tangentialNorm = tangential.normalize();
-        var cross2 = radius1.cross(tangentialNorm);
-        var rotationalEffects1 = 0;
-        var rotationalEffects2 = 0;
-        var rotationalEffects1Fric = 0;
-        var rotationalEffects2Fric = 0;
+        if(!this.solved){
+            var radius1 = this.point.subtract(this.body1.maxParent.global.body.position);
+            var radius2 = this.point.subtract(this.body2.maxParent.global.body.position);
 
-
-        var invMass1 = this.body1.maxParent.global.body.inverseMass;
-        var invMass2 = this.body2.maxParent.global.body.inverseMass;
-
-        if (this.body1.maxParent.isImmovable()) {
-            invMass1 = 0;
-        }
-        else {
-            rotationalEffects1 = this.normal.dot(this.body1.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(cross).cross(radius1));
+            var rotationalEffects1 = this.normal.dot(this.body1.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(radius1.cross(this.normal)).cross(radius1));
+            var rotationalEffects2 = this.normal.dot(this.body2.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(radius2.cross(this.normal)).cross(radius2));
             rotationalEffects1 = isFinite(rotationalEffects1) ? rotationalEffects1 : 0;
-            rotationalEffects1Fric = tangentialNorm.dot(this.body1.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(cross).cross(radius1));
-            rotationalEffects1Fric = isFinite(rotationalEffects1Fric) ? rotationalEffects1Fric : 0;
-        }
-        if (this.body2.maxParent.isImmovable()) {
-            invMass2 = 0;
-        }
-        else {
-            rotationalEffects2 = this.normal.dot(this.body2.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(cross2).cross(radius2));
             rotationalEffects2 = isFinite(rotationalEffects2) ? rotationalEffects2 : 0;
-            rotationalEffects2Fric = tangentialNorm.dot(this.body2.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(cross2).cross(radius2));
+
+            
+            var tangentialNorm = tangential.normalize();
+            var rotationalEffects1Fric = tangentialNorm.dot(this.body1.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(radius1.cross(tangentialNorm)).cross(radius1));
+            var rotationalEffects2Fric = tangentialNorm.dot(this.body2.maxParent.global.body.inverseMomentOfInertia.multiplyVector3(radius2.cross(tangentialNorm)).cross(radius2));
+            rotationalEffects1Fric = isFinite(rotationalEffects1Fric) ? rotationalEffects1Fric : 0;
             rotationalEffects2Fric = isFinite(rotationalEffects2Fric) ? rotationalEffects2Fric : 0;
+
+            var invMass1 = this.body1.maxParent.global.body.inverseMass;
+            var invMass2 = this.body2.maxParent.global.body.inverseMass;
+
+            if (this.body1.maxParent.isImmovable()) {
+                invMass1 = 0;
+                rotationalEffects1 = 0;
+                rotationalEffects1Fric = 0;
+            }
+            if (this.body2.maxParent.isImmovable()) {
+                invMass2 = 0;
+                rotationalEffects2 = 0;
+                rotationalEffects2Fric = 0;
+            }
+            this.denominator = invMass1 * (1 - this.body1.maxParent.global.body.linearDamping.multiply(this.normal).magnitude()) + rotationalEffects1 * (1 - this.body1.maxParent.global.body.angularDamping);
+
+            this.denominator += invMass2 * (1 - this.body2.maxParent.global.body.linearDamping.multiply(this.normal).magnitude()) + rotationalEffects2 * (1 - this.body2.maxParent.global.body.angularDamping);
+
+            this.denominatorFric = invMass1 * (1 - this.body1.maxParent.global.body.linearDamping.multiply(tangentialNorm).magnitude()) + rotationalEffects1Fric * (1 - this.body1.maxParent.global.body.angularDamping);
+
+            this.denominatorFric += invMass2 * (1 - this.body2.maxParent.global.body.linearDamping.multiply(tangentialNorm).magnitude()) + rotationalEffects2Fric * (1 - this.body2.maxParent.global.body.angularDamping);
+            if (this.denominator == 0) {
+                return false;
+            }
         }
-        var denominator = invMass1 * (1 - this.body1.maxParent.global.body.linearDamping.multiply(this.normal).magnitude()) + rotationalEffects1 * (1 - this.body1.maxParent.global.body.angularDamping);
 
-        denominator += invMass2 * (1 - this.body2.maxParent.global.body.linearDamping.multiply(this.normal).magnitude()) + rotationalEffects2 * (1 - this.body2.maxParent.global.body.angularDamping);
-
-        var denominatorFric = invMass1 * (1 - this.body1.maxParent.global.body.linearDamping.multiply(tangentialNorm).magnitude()) + rotationalEffects1Fric * (1 - this.body1.maxParent.global.body.angularDamping);
-
-        denominatorFric += invMass2 * (1 - this.body2.maxParent.global.body.linearDamping.multiply(tangentialNorm).magnitude()) + rotationalEffects2Fric * (1 - this.body2.maxParent.global.body.angularDamping);
-        if (denominator == 0) {
-            this.impulse = new Vector3(0, 0, 0);
-            this.solved = true;
-            return;
-        }
-
-        var impulse = - (1 + restitution) * impactSpeed / denominator;
+        var impulse = - (1 + this.material.restitution) * impactSpeed / this.denominator;
 
         if (impulse < 0) {
             impulse = 0;
         }
 
 
-        var maxFriction = tangential.magnitude() / denominatorFric;
+        var maxFriction = tangential.magnitude() / this.denominatorFric;
         tangential.normalizeInPlace();
         var friction = impulse * this.material.friction;
-        force.addInPlace(tangential.scale(-1 * Math.max(0, Math.min(maxFriction, friction))));
-        force.addInPlace(this.normal.scale(impulse));
-        this.impulse = force;
+        this.impulse = tangential.scale(-1 * Math.max(0, Math.min(maxFriction, friction))).addInPlace(this.normal.scale(impulse));
         this.solved = true;
-        return;
+        return true;
     }
 
     copy() {
